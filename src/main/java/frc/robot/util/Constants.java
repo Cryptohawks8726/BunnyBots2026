@@ -109,4 +109,18 @@ public final class Constants {
                                 ));
 
         }
+
+        public static final class IndexerConstants { // TODO: CHANGE ALL IDS
+
+                // sparkmax roller motor ids
+                public static final int shooterIndexerMotorID = 0;
+                public static final int indexerMotorOneID = 1;
+                public static final int indexerMotorTwoID = 2;
+                public static final int indexerMotorThreeID = 3;
+
+                // lidar ids
+                public static final int lidarOneID = 5; // change all ids later
+                public static final int lidarTwoID = 6;
+                public static final int lidarThreeID = 7;
+        }
 }
