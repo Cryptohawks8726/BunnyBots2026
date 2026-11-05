@@ -122,5 +122,8 @@ public final class Constants {
                 public static final int lidarOneID = 5; // change all ids later
                 public static final int lidarTwoID = 6;
                 public static final int lidarThreeID = 7;
+
+                public static final double rollerTargetRPM = 5.0;
+                public static final double rollerVoltage = 4;
         }
 }

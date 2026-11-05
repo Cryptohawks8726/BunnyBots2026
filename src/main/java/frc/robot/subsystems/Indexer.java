@@ -6,6 +6,7 @@ import frc.robot.util.Constants;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -13,6 +14,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import au.grapplerobotics.LaserCan;
 
 public class Indexer extends SubsystemBase {
+
+    // Motors
     private final SparkMax shooterIndexerMotor = new SparkMax(Constants.IndexerConstants.shooterIndexerMotorID,
             MotorType.kBrushless); // the device ID will be changed;
     private final SparkMax indexerMotorOne = new SparkMax(Constants.IndexerConstants.indexerMotorOneID,
@@ -21,11 +24,21 @@ public class Indexer extends SubsystemBase {
             MotorType.kBrushless);
     private final SparkMax indexerMotorThree = new SparkMax(Constants.IndexerConstants.indexerMotorThreeID,
             MotorType.kBrushless); // the devicde ID will be chanegd;
+
+    // Encoders
+    private final RelativeEncoder shooterEncoder = shooterIndexerMotor.getEncoder();
+    private final RelativeEncoder indexerEncoderOne = indexerMotorOne.getEncoder();
+    private final RelativeEncoder indexerEncoderTwo = indexerMotorTwo.getEncoder();
+    private final RelativeEncoder indexerEncoderThree = indexerMotorThree.getEncoder();
+
+    // LIDARs
     private final LaserCan lidarOne = new LaserCan(Constants.IndexerConstants.lidarOneID);
     private final LaserCan lidarTwo = new LaserCan(Constants.IndexerConstants.lidarTwoID);
     private final LaserCan lidarThree = new LaserCan(Constants.IndexerConstants.lidarThreeID);
 
     private BangBangController bangBang;
+
+    private double rollerVoltage = Constants.IndexerConstants.rollerVoltage;
 
     public Indexer() { // the device ID will be changed
         SparkMaxConfig motorConfig = new SparkMaxConfig();
@@ -46,6 +59,27 @@ public class Indexer extends SubsystemBase {
     @Override
     public void periodic() {
         return;
+    }
+
+    public void indexerOff() {
+        shooterIndexerMotor.setVoltage(0);
+        indexerMotorOne.setVoltage(0);
+        indexerMotorTwo.setVoltage(0);
+        indexerMotorThree.setVoltage(0);
+    }
+
+    public void shoot() {
+        double currentRPMSE = shooterEncoder.getVelocity();
+        double currentRPMIM1 = indexerEncoderOne.getVelocity();
+        double currentRPMIM2 = indexerEncoderTwo.getVelocity();
+        double currentRPMIM3 = indexerEncoderThree.getVelocity();
+
+        bangBang.setSetpoint(Constants.IndexerConstants.rollerTargetRPM);
+
+        shooterIndexerMotor.setVoltage(bangBang.calculate(currentRPMSE) * rollerVoltage);
+        indexerMotorOne.setVoltage(bangBang.calculate(currentRPMIM1) * rollerVoltage);
+        indexerMotorTwo.setVoltage(bangBang.calculate(currentRPMIM2) * rollerVoltage);
+        indexerMotorThree.setVoltage(bangBang.calculate(currentRPMIM3) * rollerVoltage);
     }
 
     public void indexerOn(double maxSpeed) {
