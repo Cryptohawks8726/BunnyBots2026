@@ -40,6 +40,13 @@ public final class Constants {
 
         public static final AprilTagFieldLayout aprilTagLayout = AprilTagMapLoader.getTagFieldLayout();
 
+        public static final class IntakeConstants {
+                public static final int armMotorID = 1;
+                public static final int rollerMotorID = 1;
+                public static final double gearRatio = 5;
+
+        }
+
         public static final class SwerveConstants {
                 public static final double maxSpeed = (demoMode ? 2.0 : 4.8); // m/s
                 public static final double maxAngularSpeed = (demoMode ? 1.5 : 3); // rad/s
