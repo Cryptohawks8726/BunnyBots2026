@@ -1,6 +1,6 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.controller.PIDController;
 
@@ -14,24 +14,30 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.util.Constants;
 import frc.robot.util.Constants.IntakeConstants;
+import frc.robot.util.stateStuff.StatefulSubsystem;
 
-public class Intake extends SubsystemBase {
+public class Intake extends StatefulSubsystem {
     // Motors
-    private final SparkMax armMotor = new SparkMax(Constants.IntakeConstants.armMotorID, MotorType.kBrushless);
-    private final SparkMax intakeMotor = new SparkMax(Constants.IntakeConstants.rollerMotorID, MotorType.kBrushless);
+    private final SparkMax armMotor;
+    private final SparkMax rollerMotor;
 
     // Encoder
     private final RelativeEncoder armEncoder;
 
     // PID
-    private final PIDController pidController;
+    private final PIDController armController;
 
     public Intake() {
-        // Initialize the PID
-        pidController = new PIDController(Constants.IntakeConstants.arm_kP, Constants.IntakeConstants.arm_kI,
+        super("IntakeSubsystem");
+        // PID
+        armController = new PIDController(Constants.IntakeConstants.arm_kP, Constants.IntakeConstants.arm_kI,
                 Constants.IntakeConstants.arm_kD);
-        pidController.reset();
-        pidController.setSetpoint(IntakeConstants.armRaisedPosition);
+        armController.reset();
+        armController.setSetpoint(IntakeConstants.armRaisedPosition);
+
+        // Motors
+        armMotor = new SparkMax(Constants.IntakeConstants.armMotorID, MotorType.kBrushless);
+        rollerMotor = new SparkMax(Constants.IntakeConstants.rollerMotorID, MotorType.kBrushless);
 
         // Arm encoder
         armEncoder = armMotor.getEncoder();
@@ -45,20 +51,22 @@ public class Intake extends SubsystemBase {
         armConfig.apply(armEncoderConfig);
         armMotor.configure(armConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
-        pidController.setTolerance(Constants.IntakeConstants.armTolerance);
+        armController.setTolerance(Constants.IntakeConstants.armTolerance);
+
+        putOnDashboard();
     }
 
     @Override
     public void periodic() {
         // Arm Profiled PID control
         double armPosition = getArmPosition();
-        double armSetpoint = pidController.getSetpoint();
+        double armSetpoint = armController.getSetpoint();
 
-        // Roller Bang-bang
-        double armOutput = IntakeConstants.arm_kG * Math.cos(armPosition);
+        // Roller
+        double armOutput = IntakeConstants.arm_kG * IntakeConstants.arm_kS * Math.cos(armPosition);
 
         if (Math.abs(armSetpoint - armPosition) > 0.1)
-            armOutput += pidController.calculate(armPosition, armSetpoint);
+            armOutput += armController.calculate(armPosition, armSetpoint);
 
         // SmartDashboard updates
         SmartDashboard.putNumber("Roller Setpoint", Constants.IntakeConstants.rollerSetpoint);
@@ -66,7 +74,7 @@ public class Intake extends SubsystemBase {
         SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
         SmartDashboard.putNumber("Arm Output", armOutput);
 
-        armMotor.setVoltage(0);
+        armMotor.setVoltage(armOutput);
     }
 
     public double getArmPosition() {
@@ -75,23 +83,41 @@ public class Intake extends SubsystemBase {
 
     // SETTING FUNCTIONS
     public void setIntakeState(double position, double rollerVolts) {
-        intakeMotor.setVoltage(rollerVolts);
+        rollerMotor.setVoltage(rollerVolts);
 
-        pidController.reset();
-        pidController.setSetpoint(position);
+        armController.reset();
+        armController.setSetpoint(position);
     }
 
     public void stopArm() {
         armMotor.setVoltage(0);
     }
 
+    public void stopRollers() {
+        rollerMotor.setVoltage(0);
+    }
+
     // BOOLEANS
     public boolean armAtSetpoint() {
-        return pidController.atSetpoint();
+        return armController.atSetpoint();
     }
 
     public boolean rollersAtSetpoint() {
-        return Math.abs(intakeMotor.getEncoder().getVelocity() - Constants.IntakeConstants.rollerSetpoint) < 25;
+        return Math.abs(rollerMotor.getEncoder().getVelocity()
+                - Constants.IntakeConstants.rollerSetpoint) < Constants.IntakeConstants.acceptedRollerError;
+    }
+
+    // RUN NEXT COMMAND FUNCS
+    public void IntakeArmUp() {
+        runNextCommand(new InstantCommand(() -> {
+            setIntakeState(IntakeConstants.armRaisedPosition, 0);
+        }).withName("Intake Up"), false);
+    }
+
+    public void IntakeArmDown() {
+        runNextCommand(new InstantCommand(() -> {
+            setIntakeState(IntakeConstants.armRaisedPosition, IntakeConstants.rollerSetpoint);
+        }).withName("Intake Down"), false);
     }
 
 }

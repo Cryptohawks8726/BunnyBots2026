@@ -40,19 +40,30 @@ public final class Constants {
 
         public static final AprilTagFieldLayout aprilTagLayout = AprilTagMapLoader.getTagFieldLayout();
 
+        // CHANGE THESE DURING TESING!
         public static final class IntakeConstants {
+                // Motors
                 public static int armMotorID = 1;
                 public static int rollerMotorID = 1;
+
                 public static double gearRatio = 5;
+
+                // PID
                 public static double arm_kP = 1.0;
                 public static double arm_kI = 0.0;
                 public static double arm_kD = 0.0;
+
+                // Arm
                 public static double armRaisedPosition = 0.0;
                 public static double armConversionFactor = 0.0;
                 public static double armTolerance = 0.0;
                 public static double arm_kG = 0.0;
+                public static double arm_kS = 0.0;
                 public static double armOffset = 0.0;
+
+                // Roller
                 public static double rollerSetpoint = 0.0;
+                public static double acceptedRollerError = 0.0;
 
         }
 
