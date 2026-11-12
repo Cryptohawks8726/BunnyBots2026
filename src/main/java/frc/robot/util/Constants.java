@@ -52,6 +52,7 @@ public final class Constants {
                 public static double armTolerance = 0.0;
                 public static double arm_kG = 0.0;
                 public static double armOffset = 0.0;
+                public static double rollerSetpoint = 0.0;
 
         }
 

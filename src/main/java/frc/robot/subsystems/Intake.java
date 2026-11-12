@@ -26,9 +26,6 @@ public class Intake extends SubsystemBase {
     // PID
     private final PIDController pidController;
 
-    // Setpoint for roller
-    private double setpoint = 0.0;
-
     public Intake() {
         // Initialize the PID
         pidController = new PIDController(Constants.IntakeConstants.arm_kP, Constants.IntakeConstants.arm_kI,
@@ -36,8 +33,10 @@ public class Intake extends SubsystemBase {
         pidController.reset();
         pidController.setSetpoint(IntakeConstants.armRaisedPosition);
 
+        // Arm encoder
         armEncoder = armMotor.getEncoder();
 
+        // Configures
         AlternateEncoderConfig armEncoderConfig = new AlternateEncoderConfig()
                 .positionConversionFactor(IntakeConstants.armConversionFactor)
                 .setSparkMaxDataPortConfig();
@@ -55,13 +54,14 @@ public class Intake extends SubsystemBase {
         double armPosition = getArmPosition();
         double armSetpoint = pidController.getSetpoint();
 
+        // Roller Bang-bang
         double armOutput = IntakeConstants.arm_kG * Math.cos(armPosition);
 
         if (Math.abs(armSetpoint - armPosition) > 0.1)
             armOutput += pidController.calculate(armPosition, armSetpoint);
 
         // SmartDashboard updates
-        SmartDashboard.putNumber("Roller Setpoint", setpoint);
+        SmartDashboard.putNumber("Roller Setpoint", Constants.IntakeConstants.rollerSetpoint);
         SmartDashboard.putNumber("Arm Position", armPosition);
         SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
         SmartDashboard.putNumber("Arm Output", armOutput);
@@ -69,6 +69,11 @@ public class Intake extends SubsystemBase {
         armMotor.setVoltage(0);
     }
 
+    public double getArmPosition() {
+        return armEncoder.getPosition() + IntakeConstants.armOffset;
+    }
+
+    // SETTING FUNCTIONS
     public void setIntakeState(double position, double rollerVolts) {
         intakeMotor.setVoltage(rollerVolts);
 
@@ -80,16 +85,13 @@ public class Intake extends SubsystemBase {
         armMotor.setVoltage(0);
     }
 
-    public double getArmPosition() {
-        return armEncoder.getPosition() + IntakeConstants.armOffset;
-    }
-
+    // BOOLEANS
     public boolean armAtSetpoint() {
         return pidController.atSetpoint();
     }
 
     public boolean rollersAtSetpoint() {
-        return Math.abs(intakeMotor.getEncoder().getVelocity() - setpoint) < 25;
+        return Math.abs(intakeMotor.getEncoder().getVelocity() - Constants.IntakeConstants.rollerSetpoint) < 25;
     }
 
 }
