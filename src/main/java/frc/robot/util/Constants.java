@@ -40,6 +40,25 @@ public final class Constants {
 
         public static final AprilTagFieldLayout aprilTagLayout = AprilTagMapLoader.getTagFieldLayout();
 
+        public static final class IntakeConstants {
+                public static final int armMotorID = 1;
+                public static final int rollerMotorID = 1;
+                public static final double gearRatio = 5;
+
+        }
+
+        public static final class IndexerConstants {
+                public static final int shooterIndexerMotorID = 0;// will be tuned
+                public static final int indexerMotorOneID = 1;// will be tuned
+                public static final int indexerMotorTwoID = 2;// will be tuned
+                public static final int indexerMotorThreeID = 3;// will be tuned
+                public static final int lidarOneID = 4;// will be tuned
+                public static final int lidarTwoID = 5;// will be tuned
+                public static final double rollerVoltage = 0;// will be tuned
+                public static final double rollerTargetRPM = 0;// will be tuned
+                public static final double lidarDistanceCheck = 55;
+        }
+
         public static final class SwerveConstants {
                 public static final double maxSpeed = (demoMode ? 2.0 : 4.8); // m/s
                 public static final double maxAngularSpeed = (demoMode ? 1.5 : 3); // rad/s
