@@ -43,27 +43,28 @@ public final class Constants {
         // CHANGE THESE DURING TESING!
         public static final class IntakeConstants {
                 // Motors
-                public static int armMotorID = 1;
-                public static int rollerMotorID = 1;
-
-                public static double gearRatio = 5;
+                public static final int armMotorID = 1;
+                public static final int rollerMotorID = 1;
 
                 // PID
-                public static double arm_kP = 1.0;
-                public static double arm_kI = 0.0;
-                public static double arm_kD = 0.0;
+                public static final double arm_kP = 1.0;
+                public static final double arm_kI = 0.0;
+                public static final double arm_kD = 0.0;
 
                 // Arm
-                public static double armRaisedPosition = 0.0;
-                public static double armConversionFactor = 0.0;
-                public static double armTolerance = 0.0;
-                public static double arm_kG = 0.0;
-                public static double arm_kS = 0.0;
-                public static double armOffset = 0.0;
+                public static final double armRaisedPosition = 0.0;
+                public static final double armLoweredPosition = 0.0;
+
+                public static final double armConversionFactor = 0.0;
+                public static final double armTolerance = 0.0;
+                public static final double arm_kG = 0.0;
+                public static final double arm_kS = 0.0;
 
                 // Roller
-                public static double rollerSetpoint = 0.0;
-                public static double acceptedRollerError = 0.0;
+                public static final double desiredRollerRPM = 0.0;
+                public static final double acceptedRollerError = 0.0;
+                public static final double rollerVelocityConversionFactor = 0.0;
+                public static final double rollerVoltage = 1;
 
         }
 

@@ -2,17 +2,19 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.util.sendable.SendableBuilder;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.AlternateEncoderConfig;
+import com.revrobotics.spark.config.EncoderConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import frc.robot.util.Constants;
 import frc.robot.util.Constants.IntakeConstants;
 import frc.robot.util.stateStuff.StatefulSubsystem;
 
@@ -21,37 +23,57 @@ public class Intake extends StatefulSubsystem {
     private final SparkMax armMotor;
     private final SparkMax rollerMotor;
 
+    double armOutput;
+
     // Encoder
     private final RelativeEncoder armEncoder;
 
     // PID
     private final PIDController armController;
+    private final BangBangController rollerController;
 
     public Intake() {
         super("IntakeSubsystem");
         // PID
-        armController = new PIDController(Constants.IntakeConstants.arm_kP, Constants.IntakeConstants.arm_kI,
-                Constants.IntakeConstants.arm_kD);
+        armController = new PIDController(IntakeConstants.arm_kP, IntakeConstants.arm_kI,
+                IntakeConstants.arm_kD);
         armController.reset();
         armController.setSetpoint(IntakeConstants.armRaisedPosition);
 
         // Motors
-        armMotor = new SparkMax(Constants.IntakeConstants.armMotorID, MotorType.kBrushless);
-        rollerMotor = new SparkMax(Constants.IntakeConstants.rollerMotorID, MotorType.kBrushless);
+        armMotor = new SparkMax(IntakeConstants.armMotorID, MotorType.kBrushless);
+        rollerMotor = new SparkMax(IntakeConstants.rollerMotorID, MotorType.kBrushless);
 
         // Arm encoder
         armEncoder = armMotor.getEncoder();
 
         // Configures
-        AlternateEncoderConfig armEncoderConfig = new AlternateEncoderConfig()
-                .positionConversionFactor(IntakeConstants.armConversionFactor)
-                .setSparkMaxDataPortConfig();
+        EncoderConfig armEncoderConfig = new SparkMaxConfig().encoder
+                .positionConversionFactor(IntakeConstants.armConversionFactor);
+
         SparkMaxConfig armConfig = new SparkMaxConfig();
         armConfig.inverted(false);
         armConfig.apply(armEncoderConfig);
+        armConfig.idleMode(IdleMode.kBrake);
         armMotor.configure(armConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
-        armController.setTolerance(Constants.IntakeConstants.armTolerance);
+        armController.setTolerance(IntakeConstants.armTolerance);
+
+        EncoderConfig rollerEncoderConfig = new SparkMaxConfig().encoder
+                .positionConversionFactor(IntakeConstants.rollerVelocityConversionFactor);
+        SparkMaxConfig rollerConfig = new SparkMaxConfig();
+
+        rollerConfig.idleMode(IdleMode.kCoast)
+                .apply(rollerEncoderConfig)
+                .inverted(false);
+        rollerMotor.configure(rollerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
+        armController.setTolerance(IntakeConstants.armTolerance);
+
+        armEncoder.setPosition(IntakeConstants.armRaisedPosition);
+
+        rollerController = new BangBangController(IntakeConstants.acceptedRollerError);
+        rollerController.setSetpoint(0);
 
         putOnDashboard();
     }
@@ -63,22 +85,24 @@ public class Intake extends StatefulSubsystem {
         double armSetpoint = armController.getSetpoint();
 
         // Roller
-        double armOutput = IntakeConstants.arm_kG * IntakeConstants.arm_kS * Math.cos(armPosition);
-
-        if (Math.abs(armSetpoint - armPosition) > 0.1)
-            armOutput += armController.calculate(armPosition, armSetpoint);
+        double armOutput = IntakeConstants.arm_kS + (IntakeConstants.arm_kG * Math.cos(armPosition)) + armController
+                .calculate(armPosition, armSetpoint);
 
         // SmartDashboard updates
-        SmartDashboard.putNumber("Roller Setpoint", Constants.IntakeConstants.rollerSetpoint);
+        SmartDashboard.putNumber("Roller Setpoint", IntakeConstants.desiredRollerRPM);
         SmartDashboard.putNumber("Arm Position", armPosition);
         SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
         SmartDashboard.putNumber("Arm Output", armOutput);
 
         armMotor.setVoltage(armOutput);
+
+        double rollerOutput = rollerController.calculate(rollerMotor.getEncoder().getVelocity(),
+                IntakeConstants.desiredRollerRPM);
+        rollerMotor.setVoltage(rollerOutput * IntakeConstants.rollerVoltage);
     }
 
     public double getArmPosition() {
-        return armEncoder.getPosition() + IntakeConstants.armOffset;
+        return armEncoder.getPosition();
     }
 
     // SETTING FUNCTIONS
@@ -104,7 +128,7 @@ public class Intake extends StatefulSubsystem {
 
     public boolean rollersAtSetpoint() {
         return Math.abs(rollerMotor.getEncoder().getVelocity()
-                - Constants.IntakeConstants.rollerSetpoint) < Constants.IntakeConstants.acceptedRollerError;
+                - IntakeConstants.desiredRollerRPM) < IntakeConstants.acceptedRollerError;
     }
 
     // RUN NEXT COMMAND FUNCS
@@ -116,8 +140,21 @@ public class Intake extends StatefulSubsystem {
 
     public void IntakeArmDown() {
         runNextCommand(new InstantCommand(() -> {
-            setIntakeState(IntakeConstants.armRaisedPosition, IntakeConstants.rollerSetpoint);
+            setIntakeState(IntakeConstants.armRaisedPosition, IntakeConstants.desiredRollerRPM);
         }).withName("Intake Down"), false);
     }
+
+    // @Override
+    // public void initSendable(SendableBuilder builder) {
+    // super.initSendable(builder);
+
+    // SmartDashboard.putData("Subsystems/" + subsystemName +
+    // "/MutableValues/IntakeArmPID", armController);
+    // SmartDashboard.putData("Subsystems/" + subsystemName +
+    // "/MutableValues/IntakeRollersBBC", rollerController);
+
+    // builder.addDoubleProperty("Arm Output", this::getArmOutput, null);
+    // builder.addDoubleProperty("Arm Position", this::getArmPos67, null);
+    // }
 
 }
