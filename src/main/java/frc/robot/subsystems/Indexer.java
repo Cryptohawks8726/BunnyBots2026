@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.Constants.IndexerConstants;
 import frc.robot.util.stateStuff.StatefulSubsystem;
 
