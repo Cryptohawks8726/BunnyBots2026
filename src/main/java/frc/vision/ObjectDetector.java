@@ -34,9 +34,9 @@ public final class ObjectDetector implements Sendable {
             double width,
             double height) {
 
-  public double area() {
-  return width  height;
-  }
+        public double area() {
+            return width * height;
+        }
 
         public double left() {
             return x - width / 2.0;
@@ -88,75 +88,75 @@ public final class ObjectDetector implements Sendable {
         }
     }
 
-  private Optional<Detection> readTarget(PhotonTrackedTarget target) {
-  int id = target.getDetectedObjectClassID();
-  double confidence = target.getDetectedObjectConfidence();
-  
-  if (id < 0
-  || !Double.isFinite(confidence)
-  || confidence < 0.0
-  || confidence > 1.0
-  || confidence < ObjectDetectionConstants.minConfidence) {
-  return Optional.empty();
-  }
-  
-  int wanted = ObjectDetectionConstants.targetClassId;
-  
-  if (wanted >= 0 && id != wanted) {
-  return Optional.empty();
-  }
-  
-  double yaw = target.getYaw();
-  double pitch = target.getPitch();
-  
-  if (!Double.isFinite(yaw) || !Double.isFinite(pitch)) {
-  return Optional.empty();
-  }
-  
-  var corners = target.getMinAreaRectCorners();
-  
-  if (corners.size() != 4) {
-  return Optional.empty();
-  }
-  
-  double left = Double.POSITIVE_INFINITY;
-  double right = Double.NEGATIVE_INFINITY;
-  double top = Double.POSITIVE_INFINITY;
-  double bottom = Double.NEGATIVE_INFINITY;
-  
-  for (var corner : corners) {
-  if (!Double.isFinite(corner.x)
-  || !Double.isFinite(corner.y)) {
-  return Optional.empty();
-  }
-  
-  left = Math.min(left, corner.x);
-  right = Math.max(right, corner.x);
-  top = Math.min(top, corner.y);
-  bottom = Math.max(bottom, corner.y);
-  }
-  
-  double width = right - left;
-  double height = bottom - top;
-  double area = width  height;
-  
-  if (width <= 0.0
-  || height <= 0.0
-  || !Double.isFinite(area)
-  || area < ObjectDetectionConstants.minBoxAreaPixels) {
-  return Optional.empty();
-  }
-  
-  return Optional.of(new Detection(
-  id,
-  confidence,
-  yaw,
-  pitch,
-  left + width / 2.0,
-  top + height / 2.0,
-  width,
-  height));
-  }
+    private Optional<Detection> readTarget(PhotonTrackedTarget target) {
+        int id = target.getDetectedObjectClassID();
+        double confidence = target.getDetectedObjectConfidence();
+
+        if (id < 0
+                || !Double.isFinite(confidence)
+                || confidence < 0.0
+                || confidence > 1.0
+                || confidence < ObjectDetectionConstants.minConfidence) {
+            return Optional.empty();
+        }
+
+        int wanted = ObjectDetectionConstants.targetClassId;
+
+        if (wanted >= 0 && id != wanted) {
+            return Optional.empty();
+        }
+
+        double yaw = target.getYaw();
+        double pitch = target.getPitch();
+
+        if (!Double.isFinite(yaw) || !Double.isFinite(pitch)) {
+            return Optional.empty();
+        }
+
+        var corners = target.getMinAreaRectCorners();
+
+        if (corners.size() != 4) {
+            return Optional.empty();
+        }
+
+        double left = Double.POSITIVE_INFINITY;
+        double right = Double.NEGATIVE_INFINITY;
+        double top = Double.POSITIVE_INFINITY;
+        double bottom = Double.NEGATIVE_INFINITY;
+
+        for (var corner : corners) {
+            if (!Double.isFinite(corner.x)
+                    || !Double.isFinite(corner.y)) {
+                return Optional.empty();
+            }
+
+            left = Math.min(left, corner.x);
+            right = Math.max(right, corner.x);
+            top = Math.min(top, corner.y);
+            bottom = Math.max(bottom, corner.y);
+        }
+
+        double width = right - left;
+        double height = bottom - top;
+        double area = width * height;
+
+        if (width <= 0.0
+                || height <= 0.0
+                || !Double.isFinite(area)
+                || area < ObjectDetectionConstants.minBoxAreaPixels) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new Detection(
+                id,
+                confidence,
+                yaw,
+                pitch,
+                left + width / 2.0,
+                top + height / 2.0,
+                width,
+                height));
+    }
 
     private void clear() {
         targets = List.of();
