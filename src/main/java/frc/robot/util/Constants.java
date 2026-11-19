@@ -159,4 +159,17 @@ public final class Constants {
                 public static final double rollerVoltage = 1;
 
         }
+
+        public static final class ObjectDetectionConstants {
+                public static final String cameraName = "placeholder";
+                public static final int pipelineIndex = 0;
+
+                public static final double minConfidence = 0.5;
+                public static final int targetClassId = -1;
+                public static final double minBoxAreaPixels = 0.0;
+
+                public static final double futureTimestampToleranceSeconds = 0.05;
+                public static final double staleTimeoutSeconds = 0.5;
+        }
+
 }
