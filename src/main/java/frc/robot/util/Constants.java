@@ -40,6 +40,17 @@ public final class Constants {
 
         public static final AprilTagFieldLayout aprilTagLayout = AprilTagMapLoader.getTagFieldLayout();
 
+        public static final class IntakeConstants { // CHANGE!!
+                public static final int armMotorID = 1;
+                public static final int rollerMotorID = 1;
+                public static final double gearRatio = 5.0;
+                public static final double kP = 1.0;
+                public static final double kI = 0.0;
+                public static final double kD = 0.0;
+                public static final double upSetpoint = 0.0;
+                public static final double downSetpoint = 0.0;
+        }
+
         public static final class SwerveConstants {
                 public static final double maxSpeed = (demoMode ? 2.0 : 4.8); // m/s
                 public static final double maxAngularSpeed = (demoMode ? 1.5 : 3); // rad/s
@@ -61,6 +72,18 @@ public final class Constants {
                 public static final double rotationalErrorRange = 0.1; // Radians
 
                 public static final double joystickDeadband = 0.1; // TODO: UPDATE this if drivers want
+        }
+
+        public static final class ObjectDetectionConstants {
+                public static final String cameraName = "placeholder";
+                public static final int pipelineIndex = 0;
+
+                public static final double minConfidence = 0.5;
+                public static final int targetClassId = -1;
+                public static final double minBoxAreaPixels = 0.0;
+
+                public static final double futureTimestampToleranceSeconds = 0.05;
+                public static final double staleTimeoutSeconds = 0.5;
         }
 
         public static final class OdometryConstants {
@@ -107,54 +130,6 @@ public final class Constants {
                                                 0, // pitch (up or down)
                                                 0 // yaw (left or right)
                                 ));
-
-        }
-
-        public static final class IndexerConstants { // TODO: CHANGE ALL IDS
-
-                // sparkmax roller motor ids
-                public static final int shooterMotorID = 50;
-                public static final int indexerMotorOneID = 51;
-                public static final int indexerMotorTwoID = 52;
-                public static final int indexerMotorThreeID = 53;
-
-                // lidar ids
-                public static final int lidarOneID = 5; // change all ids later
-                public static final int lidarTwoID = 6;
-                public static final int lidarThreeID = 7;
-
-                public static final double rollerTargetRPM = 5.0;
-                public static final double rollerVoltage = 4;
-
-                public static final double lidarDetection = 0;
-        }
-
-
-        // CHANGE THESE DURING TESING!
-        public static final class IntakeConstants {
-                // Motors
-                public static final int armMotorID = 54;
-                public static final int rollerMotorID = 55;
-
-                // PID
-                public static final double arm_kP = 1.0;
-                public static final double arm_kI = 0.0;
-                public static final double arm_kD = 0.0;
-
-                // Arm
-                public static final double armRaisedPosition = 0.0;
-                public static final double armLoweredPosition = 0.0;
-
-                public static final double armConversionFactor = 0.0;
-                public static final double armTolerance = 0.0;
-                public static final double arm_kG = 0.0;
-                public static final double arm_kS = 0.0;
-
-                // Roller
-                public static final double desiredRollerRPM = 0.0;
-                public static final double acceptedRollerError = 0.0;
-                public static final double rollerVelocityConversionFactor = 0.0;
-                public static final double rollerVoltage = 1;
 
         }
 }
