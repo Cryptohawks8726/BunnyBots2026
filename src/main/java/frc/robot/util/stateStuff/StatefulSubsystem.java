@@ -82,6 +82,8 @@ public class StatefulSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // Run the active command
+        if(activeCommand == null) return;
+
         activeCommand.execute();
         if (activeCommand.isFinished()) {
             activeCommand.end(false);

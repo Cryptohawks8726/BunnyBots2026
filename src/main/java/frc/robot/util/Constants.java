@@ -40,25 +40,6 @@ public final class Constants {
 
         public static final AprilTagFieldLayout aprilTagLayout = AprilTagMapLoader.getTagFieldLayout();
 
-        public static final class IntakeConstants {
-                public static final int armMotorID = 1;
-                public static final int rollerMotorID = 1;
-                public static final double gearRatio = 5;
-
-        }
-
-        public static final class IndexerConstants {
-                public static final int shooterIndexerMotorID = 0;// will be tuned
-                public static final int indexerMotorOneID = 1;// will be tuned
-                public static final int indexerMotorTwoID = 2;// will be tuned
-                public static final int indexerMotorThreeID = 3;// will be tuned
-                public static final int lidarOneID = 4;// will be tuned
-                public static final int lidarTwoID = 5;// will be tuned
-                public static final double rollerVoltage = 0;// will be tuned
-                public static final double rollerTargetRPM = 0;// will be tuned
-                public static final double lidarDistanceCheck = 55;
-        }
-
         public static final class SwerveConstants {
                 public static final double maxSpeed = (demoMode ? 2.0 : 4.8); // m/s
                 public static final double maxAngularSpeed = (demoMode ? 1.5 : 3); // rad/s
@@ -126,6 +107,54 @@ public final class Constants {
                                                 0, // pitch (up or down)
                                                 0 // yaw (left or right)
                                 ));
+
+        }
+
+        public static final class IndexerConstants { // TODO: CHANGE ALL IDS
+
+                // sparkmax roller motor ids
+                public static final int shooterMotorID = 50;
+                public static final int indexerMotorOneID = 51;
+                public static final int indexerMotorTwoID = 52;
+                public static final int indexerMotorThreeID = 53;
+
+                // lidar ids
+                public static final int lidarOneID = 5; // change all ids later
+                public static final int lidarTwoID = 6;
+                public static final int lidarThreeID = 7;
+
+                public static final double rollerTargetRPM = 5.0;
+                public static final double rollerVoltage = 4;
+
+                public static final double lidarDetection = 0;
+        }
+
+
+        // CHANGE THESE DURING TESING!
+        public static final class IntakeConstants {
+                // Motors
+                public static final int armMotorID = 54;
+                public static final int rollerMotorID = 55;
+
+                // PID
+                public static final double arm_kP = 1.0;
+                public static final double arm_kI = 0.0;
+                public static final double arm_kD = 0.0;
+
+                // Arm
+                public static final double armRaisedPosition = 0.0;
+                public static final double armLoweredPosition = 0.0;
+
+                public static final double armConversionFactor = 0.0;
+                public static final double armTolerance = 0.0;
+                public static final double arm_kG = 0.0;
+                public static final double arm_kS = 0.0;
+
+                // Roller
+                public static final double desiredRollerRPM = 0.0;
+                public static final double acceptedRollerError = 0.0;
+                public static final double rollerVelocityConversionFactor = 0.0;
+                public static final double rollerVoltage = 1;
 
         }
 }

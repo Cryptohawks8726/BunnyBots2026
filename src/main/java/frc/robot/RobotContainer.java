@@ -31,12 +31,13 @@ import frc.robot.util.stateStuff.StatefulSubsystem;
 import frc.vision.LimelightOdometrySource;
 import frc.vision.OdometrySource;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Indexer;
 
 public class RobotContainer extends StatefulSubsystem {
   // Sent to NetworkTables to allow the drive team to select multiple auto
   // options.
   private final SendableChooser<Command> autoChooser;
-  private final SendableChooser<String> autoChooserIfChoreo;
 
   public static enum GameState {
     AUTONOMOUS,
@@ -52,6 +53,9 @@ public class RobotContainer extends StatefulSubsystem {
   // Reference the command manager when actually commanding the swerve
   public final SwerveCommandManager swerveCommander = new SwerveCommandManager(swerve);
   public final ExampleSubsystem exampleSubsystem = new ExampleSubsystem();
+  public final Indexer indexerSubsystem = new Indexer();
+  public final Intake intakeSubsystem = new Intake();
+
 
   public final OdometrySource limelight = new LimelightOdometrySource(OdometryConstants.REGULAR, "The Limelight",
       swerve,
@@ -63,7 +67,6 @@ public class RobotContainer extends StatefulSubsystem {
     super("Robot");
 
     autoChooser = new SendableChooser<>();
-    autoChooserIfChoreo = new SendableChooser<String>();
 
     NamedCommands.registerCommand(
         "Intake",
@@ -72,7 +75,6 @@ public class RobotContainer extends StatefulSubsystem {
             .andThen(new InstantCommand(exampleSubsystem::startExampleCommand)));
     autoChooser.addOption("johnAuto", new InstantCommand(() -> {
     }));
-    autoChooserIfChoreo.addOption("AuraAuto(OutpostSide)", "AuraAuto");
 
     SmartDashboard.putData("Auto Chooser", autoChooser);
     SmartDashboard.putData("FieldPointDisplay", new FieldPointDisplay());

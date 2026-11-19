@@ -12,7 +12,9 @@
       "/SmartDashboard/Motors": "Alerts",
       "/SmartDashboard/PathPlanner": "Alerts",
       "/SmartDashboard/Pigeon 2 (v6) [1]": "Gyro",
-      "/SmartDashboard/Swerve Drive": "Alerts"
+      "/SmartDashboard/Subsystems/Intake Subsystem/MutableValues/IntakeArmPID": "PIDController",
+      "/SmartDashboard/Swerve Drive": "Alerts",
+      "/SmartDashboard/The Limelight/Field Visualization": "Field2d"
     },
     "windows": {
       "/SmartDashboard/Field": {
@@ -41,7 +43,17 @@
           "Example Subsystem": {
             "MutableValues": {
               "open": true
+            }
+          },
+          "Indexer": {
+            "MutableValues": {
+              "RollerBangBang": {
+                "open": true
+              }
             },
+            "open": true
+          },
+          "Intake Subsystem": {
             "open": true
           },
           "Robot": {
@@ -49,7 +61,8 @@
           },
           "Swerve": {
             "open": true
-          }
+          },
+          "open": true
         },
         "Swerve Drive": {
           "open": true
