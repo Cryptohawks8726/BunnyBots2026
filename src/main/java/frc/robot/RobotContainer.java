@@ -56,7 +56,6 @@ public class RobotContainer extends StatefulSubsystem {
   public final Indexer indexerSubsystem = new Indexer();
   public final Intake intakeSubsystem = new Intake();
 
-
   public final OdometrySource limelight = new LimelightOdometrySource(OdometryConstants.REGULAR, "The Limelight",
       swerve,
       OdometryConstants.ll1forwardOffset, OdometryConstants.ll1sideOffset, OdometryConstants.ll1upOffset,
@@ -80,7 +79,7 @@ public class RobotContainer extends StatefulSubsystem {
     SmartDashboard.putData("FieldPointDisplay", new FieldPointDisplay());
     putOnDashboard();
 
-    runNextCommand(new State.ManualIntake(this), true);
+    runNextCommand(new State.IdleOutake(this), true);
   }
 
   /**

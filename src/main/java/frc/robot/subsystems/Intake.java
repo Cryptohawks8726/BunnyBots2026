@@ -88,8 +88,6 @@ public class Intake extends StatefulSubsystem {
         double armOutput = IntakeConstants.arm_kS + (IntakeConstants.arm_kG * Math.cos(armPosition)) + armController
                 .calculate(armPosition, armSetpoint);
 
-        
-
         armMotor.setVoltage(armOutput);
 
         double rollerOutput = rollerController.calculate(rollerMotor.getEncoder().getVelocity(),
@@ -140,6 +138,12 @@ public class Intake extends StatefulSubsystem {
         }).withName("Intake Down"), false);
     }
 
+    public void IntakeReverseRollers() {
+        runNextCommand(new InstantCommand(() -> {
+            setIntakeState(IntakeConstants.armPartialRaisedPosition, IntakeConstants.desiredRollerRPM);
+        }).withName("Intake Down"), false);
+    }
+
     public double getArmOutput() {
         return armOutput;
     }
@@ -153,9 +157,9 @@ public class Intake extends StatefulSubsystem {
         super.initSendable(builder);
 
         SmartDashboard.putData("Subsystems/" + getName() +
-        "/MutableValues/IntakeArmPID", armController);
+                "/MutableValues/IntakeArmPID", armController);
         SmartDashboard.putData("Subsystems/" + getName() +
-        "/MutableValues/IntakeRollersBBC", rollerController);
+                "/MutableValues/IntakeRollersBBC", rollerController);
 
         builder.addDoubleProperty("Arm Output", this::getArmOutput, null);
         builder.addDoubleProperty("Arm Position", this::getArmPos, null);

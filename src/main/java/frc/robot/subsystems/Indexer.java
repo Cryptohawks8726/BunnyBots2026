@@ -166,11 +166,20 @@ public class Indexer extends StatefulSubsystem {
      */
     public boolean lidarOneDetects() {
         LaserCan.Measurement lidarMeasurement = lidarOne.getMeasurement();
-        if(lidarMeasurement == null) return false;
+        if (lidarMeasurement == null)
+            return false;
         if (lidarMeasurement.distance_mm <= IndexerConstants.lidarDetection) {
             return true;
         }
         return false;
+    }
+
+    public double lidarOneDistance() {
+        return lidarOne.getMeasurement().distance_mm;
+    }
+
+    public double lidarTwoDistance() {
+        return lidarTwo.getMeasurement().distance_mm;
     }
 
     /*
@@ -178,21 +187,20 @@ public class Indexer extends StatefulSubsystem {
      */
     public boolean lidarTwoDetects() {
         LaserCan.Measurement lidarMeasurement = lidarTwo.getMeasurement();
-        if(lidarMeasurement == null) return false;
+        if (lidarMeasurement == null)
+            return false;
         if (lidarMeasurement.distance_mm <= IndexerConstants.lidarDetection) {
             return true;
         }
         return false;
     }
 
-    public int getLocalCounter()
-    {
+    public int getLocalCounter() {
         return counter;
     }
 
-    public void setLocalCounter(long newCounter)
-    {
-        counter = (int)newCounter;
+    public void setLocalCounter(long newCounter) {
+        counter = (int) newCounter;
     }
 
     // ismail will have his funsies later
@@ -207,17 +215,18 @@ public class Indexer extends StatefulSubsystem {
      * }
      * }
      */
-    
-     @Override
+
+    @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
 
         SmartDashboard.putData("Subsystems/" + getName() +
-        "/MutableValues/RollerBangBang", bangbang);
+                "/MutableValues/RollerBangBang", bangbang);
 
         builder.addBooleanProperty("Lidar 1 Detects", this::lidarOneDetects, null);
         builder.addBooleanProperty("Lidar 2 Detects", this::lidarTwoDetects, null);
-
-        builder.addIntegerProperty("Local Counter", this::getLocalCounter, (num)->setLocalCounter(num));
+        builder.addDoubleProperty("Lidar 1 Distance", this::lidarOneDistance, null);
+        builder.addDoubleProperty("Lidar 2 Distance", this::lidarTwoDistance, null);
+        builder.addIntegerProperty("Local Counter", this::getLocalCounter, (num) -> setLocalCounter(num));
     }
 }

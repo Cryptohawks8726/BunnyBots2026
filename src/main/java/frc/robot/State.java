@@ -2,6 +2,8 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.util.Constants.OdometryConstants;
+import frc.robot.util.Constants.SwerveConstants;
 import frc.robot.util.stateStuff.StateBase;
 
 //Provide static classes representing robot-wide states here
@@ -15,77 +17,67 @@ public class State {
 
     }
 
-    public static class ManualIntake extends StateBase {
+    public static class Intake extends StateBase {
         public RobotContainer robot;
 
-        public ManualIntake(RobotContainer newRobot) {
+        public Intake(RobotContainer newRobot) {
             robot = newRobot;
 
             // The name of this state will be treated as the robot's state's name in
             // dashboard outputs
-            setName("Manual Intake");
+            setName("Intake");
         }
 
         @Override
         public void onStateEnter() {
             // john johnson
-            robot.swerve.setDefaultCommand(robot.swerveCommander.driveFieldOriented);
+            robot.swerve.setDefaultCommand(robot.swerveCommander.slowDriveFieldOriented);
+            robot.intakeSubsystem.IntakeArmDown();
         }
 
         @Override
         public void periodic() {
             if (controller.getYButtonPressed()) {
-                robot.runNextCommand(new ManualShoot(robot), false);
+
             }
 
             if (controller.getXButtonPressed()) {
-                System.out.println("it works");
+                robot.swerve.driveToPose8726(OdometryConstants.ovenScoringPos, SwerveConstants.maxSpeed);
+            }
+
+            if (controller.getXButtonPressed()) {
             }
         }
 
         @Override
         public void onStateExit() {
             // do funny stuff
+            robot.intakeSubsystem.IntakeArmUp();
         }
     }
 
-    // Currently matches Bunnybot State Diagram V2
-    public static class ManualShoot extends StateBase {
+    public static class IdleOutake extends StateBase {
         public RobotContainer robot;
-        private Command currentAlignmentCommand = null;
-        private Command currentShootLunitesIndexerCommand = null;
 
-        public ManualShoot(RobotContainer container) {
+        public IdleOutake(RobotContainer container) {
             robot = container;
 
-            setName("Manual Shoot");
+            setName("IdleOutake");
         }
 
         @Override
         public void onStateEnter() {
-            robot.swerve.setDefaultCommand(robot.swerveCommander.slowDriveFieldOriented);
+            robot.swerve.setDefaultCommand(robot.swerveCommander.driveFieldOriented);
+
         }
 
         @Override
         public void periodic() {
             if (controller.getYButtonPressed()) {
-                robot.runNextCommand(new ManualIntake(robot), false);
-            }
-            // So i just realized that all of this was for bunnybots thingy -> i think it
-            // should be fine though but the actual pos stuff probably chages idk
-            // i remember something about these pos being center based or something like
-            // that idk
 
-            if (controller.getXButtonPressed()) {
-                // ermm the pos is the outer closer one assuming we are on blue alliance
-                // robot.swerve.driveToPose8726(
-                // robot.apriltagVision.getTagRelativePose(new Pose2d(1.5, 0, new
-                // Rotation2d(Math.PI)), 18), 0.3);
             }
 
             if (controller.getAButtonPressed()) {
-                // robot.apriltagVision.simulateTagRelativeSetpoint(new Pose2d(1.5, 0, new
-                // Rotation2d(Math.PI)), 18);
             }
 
             if (controller.getBButtonPressed() && robot.swerve.getCurrentCommand() != null) {
@@ -98,11 +90,6 @@ public class State {
 
         @Override
         public void onStateExit() {
-            if (currentAlignmentCommand != null)
-                currentAlignmentCommand.cancel();
-
-            if (currentShootLunitesIndexerCommand != null)
-                currentShootLunitesIndexerCommand.cancel();
         }
     }
 }
