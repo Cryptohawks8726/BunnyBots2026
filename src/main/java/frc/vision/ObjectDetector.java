@@ -1,245 +1,258 @@
-// package frc.vision;
+/*
+package frc.vision;
 
-// import java.util.ArrayList;
-// import java.util.Comparator;
-// import java.util.List;
-// import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
-// import org.photonvision.PhotonCamera;
-// import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
-// import edu.wpi.first.util.sendable.SendableBuilder;
-// import edu.wpi.first.wpilibj.Timer;
-// import frc.robot.util.Constants.ObjectDetectionConstants;
-// import frc.robot.util.stateStuff.StatefulSubsystem;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.Timer;
+import frc.robot.util.Constants.ObjectDetectionConstants;
 
-// public class ObjectDetector extends StatefulSubsystem {
-//     private final PhotonCamera camera;
+// Helper class that filters, sorts, and reads PhotonVision detections.
+public class ObjectDetector implements Sendable {
+    private final PhotonCamera camera;
 
-//     private List<Detection> detections = List.of();
-//     private double frameTimestamp = Double.NaN;
+    private List<Detection> detections = List.of();
+    private double frameTimestamp = Double.NaN;
 
-//     public record Detection(
-//             int classId,
-//             double confidence,
-//             double x,
-//             double y,
-//             double width,
-//             double height) {
+    public record Detection(
+            int classId,
+            double confidence,
+            double yawDegrees,
+            double pitchDegrees,
+            double x,
+            double y,
+            double width,
+            double height) {
 
-//         public double area() {
-//             return width * height;
-//         }
+        public double area() {
+            return width * height;
+        }
 
-//         public double left() {
-//             return x - width / 2;
-//         }
+        public double left() {
+            return x - width / 2.0;
+        }
 
-//         public double right() {
-//             return x + width / 2;
-//         }
+        public double right() {
+            return x + width / 2.0;
+        }
 
-//         public double top() {
-//             return y - height / 2;
-//         }
+        public double top() {
+            return y - height / 2.0;
+        }
 
-//         public double bottom() {
-//             return y + height / 2;
-//         }
-//     }
+        public double bottom() {
+            return y + height / 2.0;
+        }
+    }
 
-//     public ObjectDetector() {
-//         super("Object Detector");
+    public ObjectDetector() {
+        camera = new PhotonCamera(ObjectDetectionConstants.cameraName);
+        camera.setDriverMode(false);
+        camera.setPipelineIndex(ObjectDetectionConstants.pipelineIndex);
+    }
 
-//         camera = new PhotonCamera(ObjectDetectionConstants.cameraName);
-//         camera.setDriverMode(false);
-//         camera.setPipelineIndex(ObjectDetectionConstants.pipelineIndex);
+    // Call once per robot loop from Robot or RobotContainer.
+    public void update() {
+        var results = camera.getAllUnreadResults();
 
-//         putOnDashboard();
-//     }
+        if (!isConnected() || !isCorrectPipeline()) {
+            clearFrame();
+        } else if (!results.isEmpty()) {
+            var latestResult = results.get(results.size() - 1);
+            frameTimestamp = latestResult.getTimestampSeconds();
 
-//     @Override
-//     public void periodic() {
-//         var results = camera.getAllUnreadResults();
+            var accepted = new ArrayList<Detection>();
+            for (var target : latestResult.getTargets()) {
+                toDetection(target).ifPresent(accepted::add);
+            }
 
-//         if (!isConnected() || !isCorrectPipeline()) {
-//             clearFrame();
-//         } else if (!results.isEmpty()) {
-//             var result = results.get(results.size() - 1);
-//             frameTimestamp = result.getTimestampSeconds();
+            // Largest box first, then highest confidence.
+            accepted.sort(
+                    Comparator.comparingDouble(Detection::area)
+                            .thenComparingDouble(Detection::confidence)
+                            .reversed());
 
-//             var accepted = new ArrayList<Detection>();
+            detections = List.copyOf(accepted);
+        }
 
-//             for (var target : result.getTargets()) {
-//                 toDetection(target).ifPresent(accepted::add);
-//             }
+        if (!hasFreshFrame()) {
+            detections = List.of();
+        }
+    }
 
-//             accepted.sort(
-//                     Comparator.comparingDouble(Detection::area)
-//                             .thenComparingDouble(Detection::confidence)
-//                             .reversed());
+    private Optional<Detection> toDetection(PhotonTrackedTarget target) {
+        int classId = target.getDetectedObjectClassID();
+        double confidence = target.getDetectedObjectConfidence();
 
-//             detections = List.copyOf(accepted);
-//         }
+        if (classId < 0
+                || !Double.isFinite(confidence)
+                || confidence < ObjectDetectionConstants.minConfidence
+                || confidence > 1.0) {
+            return Optional.empty();
+        }
 
-//         if (!hasFreshFrame()) {
-//             detections = List.of();
-//         }
+        int wantedClass = ObjectDetectionConstants.targetClassId;
+        if (wantedClass >= 0 && classId != wantedClass) {
+            return Optional.empty();
+        }
 
-//         super.periodic();
-//     }
+        double yaw = target.getYaw();
+        double pitch = target.getPitch();
+        if (!Double.isFinite(yaw) || !Double.isFinite(pitch)) {
+            return Optional.empty();
+        }
 
-//     private Optional<Detection> toDetection(PhotonTrackedTarget target) {
-//         int classId = target.getDetectedObjectClassID();
-//         double confidence = target.getDetectedObjectConfidence();
+        var corners = target.getMinAreaRectCorners();
+        if (corners.size() != 4) {
+            return Optional.empty();
+        }
 
-//         if (classId < 0
-//                 || !Double.isFinite(confidence)
-//                 || confidence < ObjectDetectionConstants.minConfidence
-//                 || confidence > 1) {
-//             return Optional.empty();
-//         }
+        double left = Double.POSITIVE_INFINITY;
+        double right = Double.NEGATIVE_INFINITY;
+        double top = Double.POSITIVE_INFINITY;
+        double bottom = Double.NEGATIVE_INFINITY;
 
-//         int wantedClass = ObjectDetectionConstants.targetClassId;
+        for (var corner : corners) {
+            if (!Double.isFinite(corner.x) || !Double.isFinite(corner.y)) {
+                return Optional.empty();
+            }
+            left = Math.min(left, corner.x);
+            right = Math.max(right, corner.x);
+            top = Math.min(top, corner.y);
+            bottom = Math.max(bottom, corner.y);
+        }
 
-//         if (wantedClass >= 0 && classId != wantedClass) {
-//             return Optional.empty();
-//         }
+        double width = right - left;
+        double height = bottom - top;
+        double area = width * height;
 
-//         var corners = target.getMinAreaRectCorners();
+        if (width <= 0
+                || height <= 0
+                || !Double.isFinite(area)
+                || area < ObjectDetectionConstants.minBoxAreaPixels) {
+            return Optional.empty();
+        }
 
-//         if (corners.size() != 4) {
-//             return Optional.empty();
-//         }
+        return Optional.of(new Detection(
+                classId,
+                confidence,
+                yaw,
+                pitch,
+                left + width / 2.0,
+                top + height / 2.0,
+                width,
+                height));
+    }
 
-//         double left = Double.POSITIVE_INFINITY;
-//         double right = Double.NEGATIVE_INFINITY;
-//         double top = Double.POSITIVE_INFINITY;
-//         double bottom = Double.NEGATIVE_INFINITY;
+    private void clearFrame() {
+        detections = List.of();
+        frameTimestamp = Double.NaN;
+    }
 
-//         for (var corner : corners) {
-//             if (!Double.isFinite(corner.x) || !Double.isFinite(corner.y)) {
-//                 return Optional.empty();
-//             }
+    public boolean isConnected() {
+        return camera.isConnected();
+    }
 
-//             left = Math.min(left, corner.x);
-//             right = Math.max(right, corner.x);
-//             top = Math.min(top, corner.y);
-//             bottom = Math.max(bottom, corner.y);
-//         }
+    public boolean isCorrectPipeline() {
+        return !camera.getDriverMode()
+                && camera.getPipelineIndex() == ObjectDetectionConstants.pipelineIndex;
+    }
 
-//         double width = right - left;
-//         double height = bottom - top;
-//         double area = width * height;
+    public double getFrameAgeSeconds() {
+        if (!Double.isFinite(frameTimestamp)) {
+            return Double.POSITIVE_INFINITY;
+        }
 
-//         if (width <= 0
-//                 || height <= 0
-//                 || !Double.isFinite(area)
-//                 || area < ObjectDetectionConstants.minBoxAreaPixels) {
-//             return Optional.empty();
-//         }
+        double age = Timer.getFPGATimestamp() - frameTimestamp;
+        if (!Double.isFinite(age)
+                || age < -ObjectDetectionConstants.futureTimestampToleranceSeconds) {
+            return Double.POSITIVE_INFINITY;
+        }
 
-//         return Optional.of(new Detection(
-//                 classId,
-//                 confidence,
-//                 left + width / 2,
-//                 top + height / 2,
-//                 width,
-//                 height));
-//     }
+        return Math.max(0.0, age);
+    }
 
-//     private void clearFrame() {
-//         detections = List.of();
-//         frameTimestamp = Double.NaN;
-//     }
+    public boolean hasFreshFrame() {
+        return isConnected()
+                && isCorrectPipeline()
+                && getFrameAgeSeconds() <= ObjectDetectionConstants.staleTimeoutSeconds;
+    }
 
-//     public boolean isConnected() {
-//         return camera.isConnected();
-//     }
+    public List<Detection> getDetections() {
+        return hasFreshFrame() ? detections : List.of();
+    }
 
-//     public boolean isCorrectPipeline() {
-//         return !camera.getDriverMode()
-//                 && camera.getPipelineIndex()
-//                         == ObjectDetectionConstants.pipelineIndex;
-//     }
+    public List<Detection> getDetections(int classId) {
+        return getDetections().stream()
+                .filter(detection -> detection.classId() == classId)
+                .toList();
+    }
 
-//     public double getFrameAgeSeconds() {
-//         if (!Double.isFinite(frameTimestamp)) {
-//             return Double.POSITIVE_INFINITY;
-//         }
+    public Optional<Detection> getBestTarget() {
+        return getDetections().stream().findFirst();
+    }
 
-//         double age = Timer.getFPGATimestamp() - frameTimestamp;
+    public Optional<Detection> getBestTarget(int classId) {
+        return getDetections(classId).stream().findFirst();
+    }
 
-//         if (!Double.isFinite(age)
-//                 || age < -ObjectDetectionConstants.futureTimestampToleranceSeconds) {
-//             return Double.POSITIVE_INFINITY;
-//         }
+    public boolean hasTarget() {
+        return getBestTarget().isPresent();
+    }
 
-//         return Math.max(0, age);
-//     }
+    public boolean hasTarget(int classId) {
+        return getBestTarget(classId).isPresent();
+    }
 
-//     public boolean hasFreshFrame() {
-//         return isConnected()
-//                 && isCorrectPipeline()
-//                 && getFrameAgeSeconds()
-//                         <= ObjectDetectionConstants.staleTimeoutSeconds;
-//     }
+    public int getTargetCount() {
+        return getDetections().size();
+    }
 
-//     public List<Detection> getDetections() {
-//         return hasFreshFrame() ? detections : List.of();
-//     }
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.setSmartDashboardType("Object Detector");
 
-//     public Optional<Detection> getBestTarget() {
-//         return getDetections().stream().findFirst();
-//     }
+        builder.addBooleanProperty("Connected", this::isConnected, null);
+        builder.addBooleanProperty("Correct Pipeline", this::isCorrectPipeline, null);
+        builder.addBooleanProperty("Fresh Frame", this::hasFreshFrame, null);
+        builder.addBooleanProperty("Has Target", this::hasTarget, null);
 
-//     public boolean hasTarget() {
-//         return getBestTarget().isPresent();
-//     }
+        builder.addDoubleProperty("Target Count", this::getTargetCount, null);
 
-//     public int getTargetCount() {
-//         return getDetections().size();
-//     }
+        builder.addDoubleProperty("Frame Age Seconds", () -> {
+            double age = getFrameAgeSeconds();
+            return Double.isFinite(age) ? age : -1.0;
+        }, null);
 
-//     @Override
-//     public void initSendable(SendableBuilder builder) {
-//         super.initSendable(builder);
+        builder.addDoubleProperty("Target X",
+                () -> getBestTarget().map(Detection::x).orElse(0.0), null);
+        builder.addDoubleProperty("Target Y",
+                () -> getBestTarget().map(Detection::y).orElse(0.0), null);
+        builder.addDoubleProperty("Target Yaw Degrees",
+                () -> getBestTarget().map(Detection::yawDegrees).orElse(0.0), null);
+        builder.addDoubleProperty("Target Pitch Degrees",
+                () -> getBestTarget().map(Detection::pitchDegrees).orElse(0.0), null);
+        builder.addDoubleProperty("Target Width",
+                () -> getBestTarget().map(Detection::width).orElse(0.0), null);
+        builder.addDoubleProperty("Target Height",
+                () -> getBestTarget().map(Detection::height).orElse(0.0), null);
+        builder.addDoubleProperty("Target Area Pixels",
+                () -> getBestTarget().map(Detection::area).orElse(0.0), null);
+        builder.addDoubleProperty("Target Confidence",
+                () -> getBestTarget().map(Detection::confidence).orElse(0.0), null);
+        builder.addDoubleProperty("Target Class ID",
+                () -> getBestTarget()
+                        .map(target -> (double) target.classId())
+                        .orElse(-1.0),
+                null);
+    }
+}
 
-//         builder.addBooleanProperty("Connected", this::isConnected, null);
-//         builder.addBooleanProperty("Correct Pipeline", this::isCorrectPipeline, null);
-//         builder.addBooleanProperty("Fresh Frame", this::hasFreshFrame, null);
-//         builder.addBooleanProperty("Has Target", this::hasTarget, null);
-
-//         builder.addDoubleProperty("Target Count",
-//                 () -> getTargetCount(), null);
-
-//         builder.addDoubleProperty("Frame Age Seconds", () -> {
-//             double age = getFrameAgeSeconds();
-//             return Double.isFinite(age) ? age : -1;
-//         }, null);
-
-//         builder.addDoubleProperty("Target X",
-//                 () -> getBestTarget().map(Detection::x).orElse(0.0), null);
-
-//         builder.addDoubleProperty("Target Y",
-//                 () -> getBestTarget().map(Detection::y).orElse(0.0), null);
-
-//         builder.addDoubleProperty("Target Width",
-//                 () -> getBestTarget().map(Detection::width).orElse(0.0), null);
-
-//         builder.addDoubleProperty("Target Height",
-//                 () -> getBestTarget().map(Detection::height).orElse(0.0), null);
-
-//         builder.addDoubleProperty("Target Area Pixels",
-//                 () -> getBestTarget().map(Detection::area).orElse(0.0), null);
-
-//         builder.addDoubleProperty("Target Confidence",
-//                 () -> getBestTarget().map(Detection::confidence).orElse(0.0), null);
-
-//         builder.addDoubleProperty("Target Class ID",
-//                 () -> getBestTarget()
-//                         .map(target -> (double) target.classId())
-//                         .orElse(-1.0),
-//                 null);
-//     }
-// }
+*/ 
