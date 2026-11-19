@@ -14,12 +14,16 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.util.Constants.ObjectDetectionConstants;
 
-// Helper class that filters, sorts, and reads PhotonVision detections.
-public class ObjectDetector implements Sendable {
+public final class ObjectDetector implements Sendable {
+    private static final Comparator<Detection> SORT =
+            Comparator.comparingDouble(Detection::area)
+                    .thenComparingDouble(Detection::confidence)
+                    .reversed();
+
     private final PhotonCamera camera;
 
-    private List<Detection> detections = List.of();
-    private double frameTimestamp = Double.NaN;
+    private List<Detection> targets = List.of();
+    private double frameTime = Double.NaN;
 
     public record Detection(
             int classId,
@@ -58,58 +62,60 @@ public class ObjectDetector implements Sendable {
         camera.setPipelineIndex(ObjectDetectionConstants.pipelineIndex);
     }
 
-    // Call once per robot loop from Robot or RobotContainer.
     public void update() {
-        var results = camera.getAllUnreadResults();
+        var frames = camera.getAllUnreadResults();
 
         if (!isConnected() || !isCorrectPipeline()) {
-            clearFrame();
-        } else if (!results.isEmpty()) {
-            var latestResult = results.get(results.size() - 1);
-            frameTimestamp = latestResult.getTimestampSeconds();
+            clear();
+            return;
+        }
 
-            var accepted = new ArrayList<Detection>();
-            for (var target : latestResult.getTargets()) {
-                toDetection(target).ifPresent(accepted::add);
+        if (!frames.isEmpty()) {
+            var frame = frames.get(frames.size() - 1);
+            frameTime = frame.getTimestampSeconds();
+
+            var found = new ArrayList<Detection>();
+
+            for (var target : frame.getTargets()) {
+                readTarget(target).ifPresent(found::add);
             }
 
-            // Largest box first, then highest confidence.
-            accepted.sort(
-                    Comparator.comparingDouble(Detection::area)
-                            .thenComparingDouble(Detection::confidence)
-                            .reversed());
-
-            detections = List.copyOf(accepted);
+            found.sort(SORT);
+            targets = List.copyOf(found);
         }
 
         if (!hasFreshFrame()) {
-            detections = List.of();
+            targets = List.of();
         }
     }
 
-    private Optional<Detection> toDetection(PhotonTrackedTarget target) {
-        int classId = target.getDetectedObjectClassID();
+    private Optional<Detection> readTarget(PhotonTrackedTarget target) {
+        int id = target.getDetectedObjectClassID();
         double confidence = target.getDetectedObjectConfidence();
 
-        if (classId < 0
+        if (id < 0
                 || !Double.isFinite(confidence)
-                || confidence < ObjectDetectionConstants.minConfidence
-                || confidence > 1.0) {
+                || confidence < 0.0
+                || confidence > 1.0
+                || confidence < ObjectDetectionConstants.minConfidence) {
             return Optional.empty();
         }
 
-        int wantedClass = ObjectDetectionConstants.targetClassId;
-        if (wantedClass >= 0 && classId != wantedClass) {
+        int wanted = ObjectDetectionConstants.targetClassId;
+
+        if (wanted >= 0 && id != wanted) {
             return Optional.empty();
         }
 
         double yaw = target.getYaw();
         double pitch = target.getPitch();
+
         if (!Double.isFinite(yaw) || !Double.isFinite(pitch)) {
             return Optional.empty();
         }
 
         var corners = target.getMinAreaRectCorners();
+
         if (corners.size() != 4) {
             return Optional.empty();
         }
@@ -120,9 +126,11 @@ public class ObjectDetector implements Sendable {
         double bottom = Double.NEGATIVE_INFINITY;
 
         for (var corner : corners) {
-            if (!Double.isFinite(corner.x) || !Double.isFinite(corner.y)) {
+            if (!Double.isFinite(corner.x)
+                    || !Double.isFinite(corner.y)) {
                 return Optional.empty();
             }
+
             left = Math.min(left, corner.x);
             right = Math.max(right, corner.x);
             top = Math.min(top, corner.y);
@@ -133,15 +141,15 @@ public class ObjectDetector implements Sendable {
         double height = bottom - top;
         double area = width * height;
 
-        if (width <= 0
-                || height <= 0
+        if (width <= 0.0
+                || height <= 0.0
                 || !Double.isFinite(area)
                 || area < ObjectDetectionConstants.minBoxAreaPixels) {
             return Optional.empty();
         }
 
         return Optional.of(new Detection(
-                classId,
+                id,
                 confidence,
                 yaw,
                 pitch,
@@ -151,9 +159,9 @@ public class ObjectDetector implements Sendable {
                 height));
     }
 
-    private void clearFrame() {
-        detections = List.of();
-        frameTimestamp = Double.NaN;
+    private void clear() {
+        targets = List.of();
+        frameTime = Double.NaN;
     }
 
     public boolean isConnected() {
@@ -162,15 +170,17 @@ public class ObjectDetector implements Sendable {
 
     public boolean isCorrectPipeline() {
         return !camera.getDriverMode()
-                && camera.getPipelineIndex() == ObjectDetectionConstants.pipelineIndex;
+                && camera.getPipelineIndex()
+                        == ObjectDetectionConstants.pipelineIndex;
     }
 
     public double getFrameAgeSeconds() {
-        if (!Double.isFinite(frameTimestamp)) {
+        if (!Double.isFinite(frameTime)) {
             return Double.POSITIVE_INFINITY;
         }
 
-        double age = Timer.getFPGATimestamp() - frameTimestamp;
+        double age = Timer.getFPGATimestamp() - frameTime;
+
         if (!Double.isFinite(age)
                 || age < -ObjectDetectionConstants.futureTimestampToleranceSeconds) {
             return Double.POSITIVE_INFINITY;
@@ -182,16 +192,17 @@ public class ObjectDetector implements Sendable {
     public boolean hasFreshFrame() {
         return isConnected()
                 && isCorrectPipeline()
-                && getFrameAgeSeconds() <= ObjectDetectionConstants.staleTimeoutSeconds;
+                && getFrameAgeSeconds()
+                        <= ObjectDetectionConstants.staleTimeoutSeconds;
     }
 
     public List<Detection> getDetections() {
-        return hasFreshFrame() ? detections : List.of();
+        return hasFreshFrame() ? targets : List.of();
     }
 
-    public List<Detection> getDetections(int classId) {
+    public List<Detection> getDetections(int id) {
         return getDetections().stream()
-                .filter(detection -> detection.classId() == classId)
+                .filter(target -> target.classId() == id)
                 .toList();
     }
 
@@ -199,16 +210,16 @@ public class ObjectDetector implements Sendable {
         return getDetections().stream().findFirst();
     }
 
-    public Optional<Detection> getBestTarget(int classId) {
-        return getDetections(classId).stream().findFirst();
+    public Optional<Detection> getBestTarget(int id) {
+        return getDetections(id).stream().findFirst();
     }
 
     public boolean hasTarget() {
         return getBestTarget().isPresent();
     }
 
-    public boolean hasTarget(int classId) {
-        return getBestTarget(classId).isPresent();
+    public boolean hasTarget(int id) {
+        return getBestTarget(id).isPresent();
     }
 
     public int getTargetCount() {
@@ -219,40 +230,62 @@ public class ObjectDetector implements Sendable {
     public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("Object Detector");
 
-        builder.addBooleanProperty("Connected", this::isConnected, null);
-        builder.addBooleanProperty("Correct Pipeline", this::isCorrectPipeline, null);
-        builder.addBooleanProperty("Fresh Frame", this::hasFreshFrame, null);
-        builder.addBooleanProperty("Has Target", this::hasTarget, null);
+        builder.addBooleanProperty(
+                "Connected", this::isConnected, null);
+        builder.addBooleanProperty(
+                "Correct Pipeline", this::isCorrectPipeline, null);
+        builder.addBooleanProperty(
+                "Fresh Frame", this::hasFreshFrame, null);
+        builder.addBooleanProperty(
+                "Has Target", this::hasTarget, null);
 
-        builder.addDoubleProperty("Target Count", this::getTargetCount, null);
+        builder.addDoubleProperty(
+                "Target Count", this::getTargetCount, null);
 
         builder.addDoubleProperty("Frame Age Seconds", () -> {
             double age = getFrameAgeSeconds();
             return Double.isFinite(age) ? age : -1.0;
         }, null);
 
-        builder.addDoubleProperty("Target X",
-                () -> getBestTarget().map(Detection::x).orElse(0.0), null);
-        builder.addDoubleProperty("Target Y",
-                () -> getBestTarget().map(Detection::y).orElse(0.0), null);
-        builder.addDoubleProperty("Target Yaw Degrees",
-                () -> getBestTarget().map(Detection::yawDegrees).orElse(0.0), null);
-        builder.addDoubleProperty("Target Pitch Degrees",
-                () -> getBestTarget().map(Detection::pitchDegrees).orElse(0.0), null);
-        builder.addDoubleProperty("Target Width",
-                () -> getBestTarget().map(Detection::width).orElse(0.0), null);
-        builder.addDoubleProperty("Target Height",
-                () -> getBestTarget().map(Detection::height).orElse(0.0), null);
-        builder.addDoubleProperty("Target Area Pixels",
-                () -> getBestTarget().map(Detection::area).orElse(0.0), null);
-        builder.addDoubleProperty("Target Confidence",
-                () -> getBestTarget().map(Detection::confidence).orElse(0.0), null);
-        builder.addDoubleProperty("Target Class ID",
+        builder.addDoubleProperty(
+                "Target X",
+                () -> getBestTarget().map(Detection::x).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Y",
+                () -> getBestTarget().map(Detection::y).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Width",
+                () -> getBestTarget().map(Detection::width).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Height",
+                () -> getBestTarget().map(Detection::height).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Area Pixels",
+                () -> getBestTarget().map(Detection::area).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Yaw Degrees",
+                () -> getBestTarget().map(Detection::yawDegrees).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Pitch Degrees",
+                () -> getBestTarget().map(Detection::pitchDegrees).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Confidence",
+                () -> getBestTarget().map(Detection::confidence).orElse(0.0),
+                null);
+        builder.addDoubleProperty(
+                "Target Class ID",
                 () -> getBestTarget()
                         .map(target -> (double) target.classId())
                         .orElse(-1.0),
                 null);
     }
 }
-
+*/
 */ 
