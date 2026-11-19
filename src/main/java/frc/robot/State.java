@@ -11,6 +11,8 @@ public class State {
      */
     public class StateVariables {
         // Put random variables here and make the codebase look crazy again
+        public int carrotCount = 2;
+
     }
 
     public static class ManualIntake extends StateBase {
