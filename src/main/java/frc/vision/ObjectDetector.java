@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.targeting.TargetCorner;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -32,7 +33,8 @@ public final class ObjectDetector implements Sendable {
             double x,
             double y,
             double width,
-            double height) {
+            double height,
+            double orientationDegrees) {
 
         public double area() {
             return width * height;
@@ -155,7 +157,54 @@ public final class ObjectDetector implements Sendable {
                 left + width / 2.0,
                 top + height / 2.0,
                 width,
-                height));
+                height,
+                orientationDegrees(corners)));
+    }
+
+    /**
+     * Orientation of the box's long side in image space, from the minimum-area
+     * rectangle corners. Returned in degrees in (-90, 90], measured from the
+     * image x-axis (positive is clockwise on screen, since image y points down).
+     */
+    private static double orientationDegrees(List<TargetCorner> corners) {
+        double bestLength = -1.0;
+        double bestAngle = 0.0;
+
+        for (int i = 0; i < 4; i++) {
+            var a = corners.get(i);
+            var b = corners.get((i + 1) % 4);
+            double dx = b.x - a.x;
+            double dy = b.y - a.y;
+            double length = Math.hypot(dx, dy);
+
+            if (length > bestLength) {
+                bestLength = length;
+                bestAngle = Math.toDegrees(Math.atan2(dy, dx));
+            }
+        }
+
+        while (bestAngle > 90.0) {
+            bestAngle -= 180.0;
+        }
+        while (bestAngle <= -90.0) {
+            bestAngle += 180.0;
+        }
+
+        return bestAngle;
+    }
+
+    /**
+     * Locates the best detected game piece relative to the robot's camera.
+     *
+     * @param cameraHeightMeters     height of the camera lens above the floor
+     * @param cameraAngleDownDegrees how far the camera is tilted down from horizontal
+     * @return the piece's position and orientation, or empty if there is no target
+     *         or the camera calibration constants are not set
+     */
+    public Optional<GamePieceLocator.GamePiece> getBestGamePiece(
+            double cameraHeightMeters, double cameraAngleDownDegrees) {
+        return getBestTarget().flatMap(detection -> GamePieceLocator.locate(
+                detection, cameraHeightMeters, cameraAngleDownDegrees));
     }
 
     private void clear() {
@@ -193,6 +242,37 @@ public final class ObjectDetector implements Sendable {
                 && getFrameAgeSeconds() <= ObjectDetectionConstants.staleTimeoutSeconds;
     }
 
+    /**
+     * Estimates the horizontal distance from the camera to a detection, in meters.
+     *
+     * <p>Assumes the object sits on a flat floor at targetHeightMeters. The angle
+     * of the ray below horizontal is the camera pitch plus the target pitch (both
+     * positive up), so distance = (cameraHeight - targetHeight) / tan(angleDown).
+     *
+     * @return the distance, or empty if the ray does not point down at the object
+     */
+    public static Optional<Double> estimateDistanceMeters(Detection detection) {
+        double cameraHeight = ObjectDetectionConstants.cameraHeightMeters;
+        double targetHeight = ObjectDetectionConstants.targetHeightMeters;
+        double angleDownDegrees = -(ObjectDetectionConstants.cameraPitchDegrees + detection.pitchDegrees());
+
+        if (cameraHeight <= targetHeight || angleDownDegrees <= 0.0) {
+            return Optional.empty();
+        }
+
+        double distance = (cameraHeight - targetHeight) / Math.tan(Math.toRadians(angleDownDegrees));
+
+        if (!Double.isFinite(distance) || distance < 0.0) {
+            return Optional.empty();
+        }
+
+        return Optional.of(distance);
+    }
+
+    public Optional<Double> getBestTargetDistanceMeters() {
+        return getBestTarget().flatMap(ObjectDetector::estimateDistanceMeters);
+    }
+
     public List<Detection> getDetections() {
         return hasFreshFrame() ? targets : List.of();
     }
@@ -227,60 +307,9 @@ public final class ObjectDetector implements Sendable {
     public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("Object Detector");
 
-        builder.addBooleanProperty(
-                "Connected", this::isConnected, null);
-        builder.addBooleanProperty(
-                "Correct Pipeline", this::isCorrectPipeline, null);
-        builder.addBooleanProperty(
-                "Fresh Frame", this::hasFreshFrame, null);
-        builder.addBooleanProperty(
-                "Has Target", this::hasTarget, null);
-
         builder.addDoubleProperty(
-                "Target Count", this::getTargetCount, null);
-
-        builder.addDoubleProperty("Frame Age Seconds", () -> {
-            double age = getFrameAgeSeconds();
-            return Double.isFinite(age) ? age : -1.0;
-        }, null);
-
-        builder.addDoubleProperty(
-                "Target X",
-                () -> getBestTarget().map(Detection::x).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Y",
-                () -> getBestTarget().map(Detection::y).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Width",
-                () -> getBestTarget().map(Detection::width).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Height",
-                () -> getBestTarget().map(Detection::height).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Area Pixels",
-                () -> getBestTarget().map(Detection::area).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Yaw Degrees",
-                () -> getBestTarget().map(Detection::yawDegrees).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Pitch Degrees",
-                () -> getBestTarget().map(Detection::pitchDegrees).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Confidence",
-                () -> getBestTarget().map(Detection::confidence).orElse(0.0),
-                null);
-        builder.addDoubleProperty(
-                "Target Class ID",
-                () -> getBestTarget()
-                        .map(target -> (double) target.classId())
-                        .orElse(-1.0),
+                "Target Distance Meters",
+                () -> getBestTargetDistanceMeters().orElse(-1.0),
                 null);
     }
 }
