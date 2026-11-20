@@ -170,6 +170,21 @@ public final class Constants {
 
                 public static final double futureTimestampToleranceSeconds = 0.05;
                 public static final double staleTimeoutSeconds = 0.5;
+
+                // Camera mounting, measured on the robot. TODO: measure these.
+                // Height is from the floor to the camera lens, in meters.
+                public static final double cameraHeightMeters = 0.0;
+                // Pitch is the camera tilt from horizontal, in degrees. Positive = tilted up.
+                public static final double cameraPitchDegrees = 0.0;
+                // Height of the center of the object above the floor, in meters.
+                public static final double targetHeightMeters = 0.0;
+
+                // Camera calibration, from the camera's stream resolution and field of view.
+                // TODO: calibrate these. Until they are set, locating game pieces returns empty.
+                public static final double imageWidthPixels = 0.0;
+                public static final double imageHeightPixels = 0.0;
+                public static final double horizontalFovDegrees = 0.0;
+                public static final double verticalFovDegrees = 0.0;
         }
 
 }
