@@ -32,7 +32,7 @@ import edu.wpi.first.math.Nat;
  * wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class Constants {
+public final class IntakeConstants {
 
         public static final boolean demoMode = false;
         // CHANGE BEFORE MATCHES!!!!!
@@ -61,6 +61,12 @@ public final class Constants {
                 public static final double rotationalErrorRange = 0.1; // Radians
 
                 public static final double joystickDeadband = 0.1; // TODO: UPDATE this if drivers want
+        }
+
+        public static final class AutoConstants {
+                public static final Pose2d crossKitchenLine = new Pose2d(3.1877, 7.0612, new Rotation2d(0));
+                
+
         }
 
         public static final class OdometryConstants {
@@ -110,6 +116,64 @@ public final class Constants {
 
                 public static final Pose2d ovenScoringPos = currentAlliance == Alliance.Blue ? new Pose2d()
                                 : new Pose2d();
+
+                /* all of the points under this comment are specific starting points for autos
+                 - OutboundCorner (Blue) = (3.1369, 7.112)
+                 - OutboundCorner (Red) = (13.335438, 7.143750)
+                 - NextToOvenForward (Blue) = (1.912487, 2.680494)
+                 - NextToOvenForward (Red) = (14.585252, 2.655094)
+                 - NextToOvenBackward (Blue) = (0, 2.677319)
+                 - NextToOvenBackward (Red) = (16.502952, 2.677319)
+)
+                */
+                public static final Pose2d outboundCornerBlueFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d outboundCornerRedFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenForwardBlueFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenForwardRedFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenBackwardBlueFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenBackwardRedFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+
+                /* The next points are the coordinates of the different carrots on the field at the start
+                        - Blue Carrot 1 = NEED TO FIND
+                        - Blue Carrot 2 = NEED TO FIND
+                        - Blue Carrot 3 = NEED TO FIND
+                        - Blue Carrot 4 = NEED TO FIND
+                        - Blue Carrot 5 = NEED TO FIND
+
+                        - Red Carrot 1 = NEED TO FIND
+                        - Red Carrot 2 = NEED TO FIND
+                        - Red Carrot 3 = NEED TO FIND
+                        - Red Carrot 4 = NEED TO FIND
+                        - Red Carrot 5 = NEED TO FIND
+                 */
+
+                public static final Pose2d blueCarrot1Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot2Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot3Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot4Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot5Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot1Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot2Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot3Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot4Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot5Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+
         }
 
         public static final class IndexerConstants { // TODO: CHANGE ALL IDS
