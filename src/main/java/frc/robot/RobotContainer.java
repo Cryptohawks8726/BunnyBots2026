@@ -8,10 +8,7 @@ import java.io.File;
 
 import com.pathplanner.lib.auto.NamedCommands;
 
-import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -21,18 +18,18 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.Constants;
-import frc.robot.util.Constants.OdometryConstants;
 import frc.robot.util.FieldPointDisplay;
+import frc.robot.util.IntakeConstants;
+import frc.robot.util.IntakeConstants.OdometryConstants;
 import frc.robot.util.SwerveCommandManager;
 import frc.robot.util.stateStuff.StateBase;
 import frc.robot.util.stateStuff.StatefulSubsystem;
 import frc.vision.LimelightOdometrySource;
 import frc.vision.OdometrySource;
-import frc.robot.subsystems.ExampleSubsystem;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Indexer;
 
 public class RobotContainer extends StatefulSubsystem {
   // Sent to NetworkTables to allow the drive team to select multiple auto
@@ -88,7 +85,7 @@ public class RobotContainer extends StatefulSubsystem {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    if (!Constants.demoMode) {
+    if (!IntakeConstants.demoMode) {
       return autoChooser.getSelected();
     } else {
       return null;

@@ -3,7 +3,7 @@ package frc.vision;
 import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import frc.robot.util.Constants.ObjectDetectionConstants;
+import frc.robot.util.IntakeConstants.ObjectDetectionConstants;
 import frc.vision.ObjectDetector.Detection;
 
 /**

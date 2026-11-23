@@ -33,8 +33,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
-import frc.robot.util.Constants;
-import frc.robot.util.Constants.SwerveConstants;
+import frc.robot.util.IntakeConstants;
+import frc.robot.util.IntakeConstants.SwerveConstants;
 import frc.robot.util.stateStuff.StatefulSubsystem;
 import frc.vision.OdometrySource;
 import frc.vision.OdometrySource.VisionException;
@@ -64,25 +64,25 @@ public class SwerveSubsystem extends StatefulSubsystem {
    * Used in driveToPose8726
    */
   private final PIDController swerveXPositionPID = new PIDController(
-      Constants.SwerveConstants.positionkP,
-      Constants.SwerveConstants.positionkI,
-      Constants.SwerveConstants.positionkD);
+      IntakeConstants.SwerveConstants.positionkP,
+      IntakeConstants.SwerveConstants.positionkI,
+      IntakeConstants.SwerveConstants.positionkD);
 
   /**
    * Used in driveToPose8726
    */
   private final PIDController swerveYPositionPID = new PIDController(
-      Constants.SwerveConstants.positionkP,
-      Constants.SwerveConstants.positionkI,
-      Constants.SwerveConstants.positionkD);
+      IntakeConstants.SwerveConstants.positionkP,
+      IntakeConstants.SwerveConstants.positionkI,
+      IntakeConstants.SwerveConstants.positionkD);
 
   /**
    * Used in driveToPose8726
    */
   private final PIDController swerveThetaPositionPID = new PIDController(
-      Constants.SwerveConstants.rotationkP,
-      Constants.SwerveConstants.rotationkI,
-      Constants.SwerveConstants.rotationkD);
+      IntakeConstants.SwerveConstants.rotationkP,
+      IntakeConstants.SwerveConstants.rotationkI,
+      IntakeConstants.SwerveConstants.rotationkD);
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -94,7 +94,7 @@ public class SwerveSubsystem extends StatefulSubsystem {
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     SmartDashboard.putData("Subsystems/" + getName(), this);
 
-    Pose2d startingPose = Constants.currentAlliance == Alliance.Blue ? new Pose2d(new Translation2d(Meter.of(1),
+    Pose2d startingPose = IntakeConstants.currentAlliance == Alliance.Blue ? new Pose2d(new Translation2d(Meter.of(1),
         Meter.of(4)),
         Rotation2d.fromDegrees(0))
         : new Pose2d(new Translation2d(Meter.of(16),
@@ -425,7 +425,7 @@ public class SwerveSubsystem extends StatefulSubsystem {
    * If red alliance rotate the robot 180 after the drviebase zero command
    */
   public void zeroGyroWithAlliance() {
-    if (Constants.currentAlliance == Alliance.Red) {
+    if (IntakeConstants.currentAlliance == Alliance.Red) {
       zeroGyro();
       // Set the pose 180 degrees
       resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
@@ -473,7 +473,7 @@ public class SwerveSubsystem extends StatefulSubsystem {
         headingX,
         headingY,
         getHeading().getRadians(),
-        Constants.SwerveConstants.maxSpeed);
+        IntakeConstants.SwerveConstants.maxSpeed);
   }
 
   /**
@@ -493,7 +493,7 @@ public class SwerveSubsystem extends StatefulSubsystem {
         scaledInputs.getY(),
         angle.getRadians(),
         getHeading().getRadians(),
-        Constants.SwerveConstants.maxSpeed);
+        IntakeConstants.SwerveConstants.maxSpeed);
   }
 
   /**
@@ -634,11 +634,11 @@ public class SwerveSubsystem extends StatefulSubsystem {
   }
 
   public static Pose2d getTagRelativePose(Pose2d desiredPose, int tagID) {
-    if (!Constants.aprilTagLayout.getTagPose(tagID).isPresent())
+    if (!IntakeConstants.aprilTagLayout.getTagPose(tagID).isPresent())
       return new Pose2d(0, 0, new Rotation2d());
 
     // Uses the most recent tag for creating setpoints
-    Pose2d tagPose = Constants.aprilTagLayout.getTagPose(tagID).get().toPose2d();
+    Pose2d tagPose = IntakeConstants.aprilTagLayout.getTagPose(tagID).get().toPose2d();
 
     // Creates a desired pose for the robot by converting the desired distance from
     // the tag in tag-relative space to the desired bot pose in field space.

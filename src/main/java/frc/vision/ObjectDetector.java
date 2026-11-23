@@ -13,7 +13,7 @@ import org.photonvision.targeting.TargetCorner;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.util.Constants.ObjectDetectionConstants;
+import frc.robot.util.IntakeConstants.ObjectDetectionConstants;
 
 public final class ObjectDetector implements Sendable {
     private static final Comparator<Detection> SORT = Comparator.comparingDouble(Detection::area)

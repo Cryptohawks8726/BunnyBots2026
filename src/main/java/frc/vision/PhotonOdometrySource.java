@@ -11,8 +11,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.Constants;
-import frc.robot.util.Constants.OdometryConstants;
+import frc.robot.util.IntakeConstants;
+import frc.robot.util.IntakeConstants.OdometryConstants;
 
 public class PhotonOdometrySource extends OdometrySource {
     // Field in NetworkTables for visualizing the odometry.
@@ -42,7 +42,7 @@ public class PhotonOdometrySource extends OdometrySource {
         this.stdDevs = stdDevs;
         this.swerve = swerve;
 
-        poseEstimator = new PhotonPoseEstimator(Constants.aprilTagLayout, robotToCamera);
+        poseEstimator = new PhotonPoseEstimator(IntakeConstants.aprilTagLayout, robotToCamera);
         SmartDashboard.putData(name + "/Field Visualization", field);
     }
 
