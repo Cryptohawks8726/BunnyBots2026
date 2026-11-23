@@ -244,7 +244,8 @@ public final class IntakeConstants {
                 public static final double targetHeightMeters = 0.0;
 
                 // Camera calibration, from the camera's stream resolution and field of view.
-                // TODO: calibrate these. Until they are set, locating game pieces returns empty.
+                // TODO: calibrate these. Until they are set, locating game pieces returns
+                // empty.
                 public static final double imageWidthPixels = 0.0;
                 public static final double imageHeightPixels = 0.0;
                 public static final double horizontalFovDegrees = 0.0;
