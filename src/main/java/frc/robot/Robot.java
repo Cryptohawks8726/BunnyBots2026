@@ -26,6 +26,8 @@ public class Robot extends TimedRobot {
     cmdAutoChooser = new SendableChooser<>();
     booleanAutoChooser = new SendableChooser<>();
 
+
+    // TODO: Fix this
     // cmdAutoChooser.addOption("crossKitchenLine", new InstantCommand(() -> {
     // }))
     //   .andThen(new WaitUntilCommand(() -> State.getCurrentCommandName().equals("Manual Intake")))

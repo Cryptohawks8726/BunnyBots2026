@@ -14,7 +14,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.util.IntakeConstants.ObjectDetectionConstants;
+import frc.robot.util.Constants.ObjectDetectionConstants;
 
 /**
  * Reads object detections from a PhotonVision camera, removes bad ones, and
