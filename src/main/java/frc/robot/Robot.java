@@ -26,10 +26,10 @@ public class Robot extends TimedRobot {
     cmdAutoChooser = new SendableChooser<>();
     booleanAutoChooser = new SendableChooser<>();
 
-    cmdAutoChooser.addOption("crossKitchenLine", new InstantCommand(() -> {
-    }));
-      .andThen(new WaitUntilCommand(() -> State.getCurrentCommandName().equals("Manual Intake")));
-      .andThen(RobotContainer.swerve.driveToPose8726(AutoConstants.crossKitchenLine));
+    // cmdAutoChooser.addOption("crossKitchenLine", new InstantCommand(() -> {
+    // }))
+    //   .andThen(new WaitUntilCommand(() -> State.getCurrentCommandName().equals("Manual Intake")))
+    //   .andThen(m_robotContainer.swerve.driveToPose8726(AutoConstants.crossKitchenLine));
   }
 
   @Override

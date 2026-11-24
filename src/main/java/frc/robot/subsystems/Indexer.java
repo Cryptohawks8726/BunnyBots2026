@@ -13,7 +13,7 @@ import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import frc.robot.util.IntakeConstants.IndexerConstants;
+import frc.robot.util.Constants.IndexerConstants;
 import frc.robot.util.stateStuff.StatefulSubsystem;
 
 public class Indexer extends StatefulSubsystem {

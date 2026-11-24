@@ -32,7 +32,7 @@ import edu.wpi.first.math.Nat;
  * wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class IntakeConstants {
+public final class Constants {
 
         public static final boolean demoMode = false;
         // CHANGE BEFORE MATCHES!!!!!
