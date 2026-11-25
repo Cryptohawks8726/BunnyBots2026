@@ -155,7 +155,7 @@ public class Indexer extends StatefulSubsystem {
             indexerMotorTwo.setVoltage(0);
             indexerMotorThree.setVoltage(0);
         },
-                () -> counter == 3), false);
+            () -> counter == 3), false);
     }
 
     /*
@@ -199,19 +199,6 @@ public class Indexer extends StatefulSubsystem {
     public void setLocalCounter(long newCounter) {
         counter = (int) newCounter;
     }
-
-    // ismail will have his funsies later
-    /*
-     * public Runnable resetMotors() {
-     * // runs when the command is finished
-     * return () -> {
-     * shooterMotor.setVoltage(0);
-     * indexerMotorOne.setVoltage(0);
-     * indexerMotorTwo.setVoltage(0);
-     * indexerMotorThree.setVoltage(0);
-     * }
-     * }
-     */
 
     @Override
     public void initSendable(SendableBuilder builder) {

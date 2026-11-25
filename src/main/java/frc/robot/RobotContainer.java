@@ -50,8 +50,8 @@ public class RobotContainer extends StatefulSubsystem {
   // Reference the command manager when actually commanding the swerve
   public final SwerveCommandManager swerveCommander = new SwerveCommandManager(swerve);
   public final ExampleSubsystem exampleSubsystem = new ExampleSubsystem();
-  public final Indexer indexerSubsystem = new Indexer();
-  public final Intake intakeSubsystem = new Intake();
+  // public final Indexer indexerSubsystem = new Indexer();
+  // public final Intake intakeSubsystem = new Intake();
 
   public final OdometrySource limelight = new LimelightOdometrySource(OdometryConstants.REGULAR, "The Limelight",
       swerve,
@@ -97,6 +97,9 @@ public class RobotContainer extends StatefulSubsystem {
 
     // Game time (seconds)
     builder.addDoubleProperty("gameTime", () -> Timer.getMatchTime(), null);
+
+    // Carrot Count
+    builder.addIntegerProperty("carrotCount", () -> State.StateVariables.getCarrotCount(), null);
 
     Pose2d pose = swerve.getPose();
     // X, Y, Rotation (meters, meters, radians)

@@ -13,7 +13,11 @@ public class State {
      */
     public class StateVariables {
         // Put random variables here and make the codebase look crazy again
-        public int carrotCount = 2;
+        public static int carrotCount = 2;
+
+        public static int getCarrotCount() {
+            return carrotCount;
+        }
 
     }
 
@@ -32,7 +36,7 @@ public class State {
         public void onStateEnter() {
             // john johnson
             robot.swerve.setDefaultCommand(robot.swerveCommander.slowDriveFieldOriented);
-            robot.intakeSubsystem.IntakeArmDown();
+           // robot.intakeSubsystem.IntakeArmDown();
         }
 
         @Override
@@ -52,7 +56,7 @@ public class State {
         @Override
         public void onStateExit() {
             // do funny stuff
-            robot.intakeSubsystem.IntakeArmUp();
+            //robot.intakeSubsystem.IntakeArmUp();
         }
     }
 
