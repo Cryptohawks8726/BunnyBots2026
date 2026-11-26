@@ -10,13 +10,14 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
-
+import edu.wpi.first.math.util.Units;
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -104,5 +105,142 @@ public final class Constants {
                         0 // yaw (left or right)
                 ));
 
-    }
+                public static final Pose2d ovenScoringPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+
+                /* all of the points under this comment are specific starting points for autos
+                 - OutboundCorner (Blue) = (3.1369, 7.112)
+                 - OutboundCorner (Red) = (13.335438, 7.143750)
+                 - NextToOvenForward (Blue) = (1.912487, 2.680494)
+                 - NextToOvenForward (Red) = (14.585252, 2.655094)
+                 - NextToOvenBackward (Blue) = (0, 2.677319)
+                 - NextToOvenBackward (Red) = (16.502952, 2.677319)
+)
+                */
+                public static final Pose2d outboundCornerBlueFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d outboundCornerRedFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenForwardBlueFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenForwardRedFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenBackwardBlueFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d nextToOvenBackwardRedFinalPos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+
+                /* The next points are the coordinates of the different carrots on the field at the start
+                        - Blue Carrot 1 = NEED TO FIND
+                        - Blue Carrot 2 = NEED TO FIND
+                        - Blue Carrot 3 = NEED TO FIND
+                        - Blue Carrot 4 = NEED TO FIND
+                        - Blue Carrot 5 = NEED TO FIND
+
+                        - Red Carrot 1 = NEED TO FIND
+                        - Red Carrot 2 = NEED TO FIND
+                        - Red Carrot 3 = NEED TO FIND
+                        - Red Carrot 4 = NEED TO FIND
+                        - Red Carrot 5 = NEED TO FIND
+                 */
+
+                public static final Pose2d blueCarrot1Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot2Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot3Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot4Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d blueCarrot5Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot1Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot2Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot3Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot4Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+                public static final Pose2d redCarrot5Pos = currentAlliance == Alliance.Blue ? new Pose2d()
+                                : new Pose2d();
+
+        }
+
+        public static final class IndexerConstants { // TODO: CHANGE ALL IDS
+
+                // sparkmax roller motor ids
+                public static final int shooterMotorID = 50;
+                public static final int indexerMotorOneID = 51;
+                public static final int indexerMotorTwoID = 52;
+                public static final int indexerMotorThreeID = 53;
+
+                // lidar ids
+                public static final int lidarOneID = 5; // change all ids later
+                public static final int lidarTwoID = 6;
+                public static final int lidarThreeID = 7;
+
+                public static final double rollerTargetRPM = 5.0;
+                public static final double rollerVoltage = 4;
+
+                public static final double lidarDetection = 0;
+        }
+
+        // CHANGE THESE DURING TESING!
+        public static final class IntakeConstants {
+                // Motors
+                public static final int armMotorID = 54;
+                public static final int rollerMotorID = 55;
+
+                // PID
+                public static final double arm_kP = 1.0;
+                public static final double arm_kI = 0.0;
+                public static final double arm_kD = 0.0;
+
+                // Arm
+                public static final double armRaisedPosition = 0.0;
+                public static final double armPartialRaisedPosition = 0.0;
+                public static final double armLoweredPosition = 0.0;
+
+                public static final double armConversionFactor = 0.0;
+                public static final double armTolerance = 0.0;
+                public static final double arm_kG = 0.0;
+                public static final double arm_kS = 0.0;
+
+                // Roller
+                public static final double desiredRollerRPM = 0.0;
+                public static final double acceptedRollerError = 0.0;
+                public static final double rollerVelocityConversionFactor = 0.0;
+                public static final double rollerVoltage = 1;
+
+        }
+
+        public static final class ObjectDetectionConstants {
+                public static final String cameraName = "placeholder";
+                public static final int pipelineIndex = 0;
+
+                public static final double minConfidence = 0.5;
+                public static final int targetClassId = -1;
+                public static final double minBoxAreaPixels = 0.0;
+
+                public static final double futureTimestampToleranceSeconds = 0.05;
+                public static final double staleTimeoutSeconds = 0.5;
+
+                // Camera mounting, measured on the robot. TODO: measure these.
+                // Height is from the floor to the camera lens, in meters.
+                public static final double cameraHeightMeters = 0.0;
+                // Pitch is the camera tilt from horizontal, in degrees. Positive = tilted up.
+                public static final double cameraPitchDegrees = 0.0;
+                // Height of the center of the object above the floor, in meters.
+                public static final double targetHeightMeters = 0.0;
+
+                // Camera calibration, from the camera's stream resolution and field of view.
+                // TODO: calibrate these. Until they are set, locating game pieces returns
+                // empty.
+                public static final double imageWidthPixels = 0.0;
+                public static final double imageHeightPixels = 0.0;
+                public static final double horizontalFovDegrees = 0.0;
+                public static final double verticalFovDegrees = 0.0;
+        }
+
 }
